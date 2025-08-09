@@ -117,7 +117,7 @@ export default function JobPage() {
         <div className="flex items-center gap-2">
           <Button size="sm" onClick={runNow}><Play size={14} /> Run Now</Button>
           <Button size="sm" variant="outline" onClick={toggleEnabled}><Pause size={14} /> {job?.enabled ? "Pause" : "Resume"}</Button>
-          <Button size="sm" variant="outline" onClick={() => router.push("/")}> <Edit3 size={14} /> Edit</Button>
+          <Button size="sm" variant="outline" onClick={() => router.push(`/?edit=${id}`)}> <Edit3 size={14} /> Edit</Button>
           <Button size="sm" variant="outline" className="text-red-700 hover:bg-red-50 hover:border-red-200" onClick={removeJob}><Trash2 size={14} /> Delete</Button>
         </div>
       </div>
@@ -187,4 +187,3 @@ export default function JobPage() {
     </main>
   );
 }
-

@@ -23,7 +23,10 @@ export default function SettingsPage() {
   useEffect(() => {
     try {
       const stored = localStorage.getItem("prefs");
-      if (stored) setPrefs(JSON.parse(stored));
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setPrefs((prev) => ({ ...prev, ...parsed }));
+      }
     } catch {}
   }, []);
 
@@ -84,7 +87,7 @@ export default function SettingsPage() {
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
-              checked={prefs.emailOnFailure}
+              checked={!!prefs.emailOnFailure}
               onChange={(e) => setPrefs((p) => ({ ...p, emailOnFailure: e.target.checked }))}
             />
             Email on failure
@@ -92,7 +95,7 @@ export default function SettingsPage() {
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
-              checked={prefs.slackOnSuccess}
+              checked={!!prefs.slackOnSuccess}
               onChange={(e) => setPrefs((p) => ({ ...p, slackOnSuccess: e.target.checked }))}
             />
             Slack on success
@@ -122,4 +125,3 @@ export default function SettingsPage() {
     </main>
   );
 }
-

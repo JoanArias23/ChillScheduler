@@ -23,6 +23,8 @@ import JobDetailModal from "@/components/JobDetailModal";
 import Skeleton from "@/components/ui/Skeleton";
 import { useToast } from "@/components/ui/Toast";
 import { usePrefs } from "@/components/usePrefs";
+import { useSearchParams } from "next/navigation";
+import { TEMPLATES } from "@/components/templates";
 import { useRouter } from "next/navigation";
 
 type Job = Schema["Job"]["type"];
@@ -63,6 +65,7 @@ export default function Home() {
   const configured = typeof window !== "undefined" && !!window.__AMPLIFY_CONFIGURED__;
   const { prefs } = usePrefs();
   const { push } = useToast();
+  const searchParams = useSearchParams();
 
   async function refreshJobs() {
     setLoadingJobs(true);
@@ -102,6 +105,33 @@ export default function Home() {
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [configured, prefs.autoRefreshSeconds]);
+
+  // Support template deep-linking and edit routing
+  useEffect(() => {
+    const tplId = searchParams.get("template");
+    const editId = searchParams.get("edit");
+    if (tplId) {
+      const tpl = TEMPLATES.find((t) => t.id === tplId);
+      if (tpl) {
+        setSelectedJobForEdit({ name: tpl.name, prompt: tpl.prompt, schedule: tpl.schedule } as any);
+        setActiveTab("Create Job");
+      }
+    } else if (editId) {
+      // In connected mode fetch real job; otherwise mock
+      (async () => {
+        try {
+          if (configured) {
+            const j = await client.models.Job.get({ id: editId });
+            if (j.data) setSelectedJobForEdit(j.data as any);
+          } else {
+            setSelectedJobForEdit({ id: editId, name: "Mock Job", prompt: "Edit me", schedule: "0 */4 * * *" } as any);
+          }
+          setActiveTab("Create Job");
+        } catch {}
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {

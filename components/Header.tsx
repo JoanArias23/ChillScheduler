@@ -39,6 +39,7 @@ export default function Header() {
           <nav className="ml-4 hidden sm:flex items-center gap-1">
             {[
               { href: "/", label: "Dashboard" },
+              { href: "/templates", label: "Templates" },
               { href: "/settings", label: "Settings" },
               { href: "/profile", label: "Profile" },
             ].map((l) => {
@@ -82,15 +83,6 @@ export default function Header() {
           </div>
 
           <ThemeToggle />
-
-          <button
-            type="button"
-            className="inline-flex items-center gap-1 text-gray-600 hover:text-gray-900 focus:outline-none"
-            title="Settings"
-          >
-            <Cog size={18} />
-            <span className="hidden sm:inline">Settings</span>
-          </button>
         </div>
       </div>
     </header>
