@@ -47,11 +47,24 @@ export default function ThemeToggle() {
       type="button"
       aria-label="Toggle theme"
       onClick={toggle}
-      className="inline-flex items-center gap-1 text-gray-600 hover:text-gray-900 focus:outline-none"
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-colors ${
+        theme === "light" 
+          ? "text-gray-600 hover:bg-gray-100" 
+          : "text-yellow-400 bg-gray-800 hover:bg-gray-700 border border-gray-600"
+      }`}
       title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
     >
-      {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
-      <span className="hidden sm:inline">{theme === "light" ? "Dark" : "Light"}</span>
+      {theme === "light" ? (
+        <>
+          <Moon size={16} />
+          <span className="text-sm font-medium">Dark</span>
+        </>
+      ) : (
+        <>
+          <Sun size={16} className="text-yellow-400" />
+          <span className="text-sm font-medium text-gray-200">Light</span>
+        </>
+      )}
     </button>
   );
 }
