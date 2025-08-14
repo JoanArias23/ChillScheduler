@@ -49,15 +49,15 @@ export default function ThemeToggle() {
       onClick={toggle}
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-colors ${
         theme === "light" 
-          ? "text-gray-600 hover:bg-gray-100" 
+          ? "text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200" 
           : "text-yellow-400 bg-gray-800 hover:bg-gray-700 border border-gray-600"
       }`}
       title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
     >
       {theme === "light" ? (
         <>
-          <Moon size={16} />
-          <span className="text-sm font-medium">Dark</span>
+          <Moon size={16} className="text-indigo-600" />
+          <span className="text-sm font-medium text-indigo-600">Dark</span>
         </>
       ) : (
         <>
