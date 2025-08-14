@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "node scripts/prepare-amplify.js && next build",
     "start": "next start",
     "lint": "next lint",
-    "amplify:sync": "cp amplify_outputs.json public/amplify_outputs.json 2>/dev/null || true"
+    "amplify:sync": "node scripts/prepare-amplify.js"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.864.0",

@@ -18,7 +18,22 @@ export default function ConfigureAmplifyClientSide() {
     let cancelled = false;
     async function configure() {
       try {
-        // Attempt to load Amplify Gen 2 outputs if present at runtime
+        // Check if config is available as environment variable first (production)
+        if (process.env.NEXT_PUBLIC_AMPLIFY_CONFIG) {
+          try {
+            const outputs = JSON.parse(process.env.NEXT_PUBLIC_AMPLIFY_CONFIG);
+            Amplify.configure(outputs);
+            if (!cancelled) {
+              window.__AMPLIFY_CONFIGURED__ = true;
+              setConfigured(true);
+            }
+            return;
+          } catch (e) {
+            console.warn("Failed to parse NEXT_PUBLIC_AMPLIFY_CONFIG");
+          }
+        }
+
+        // Fallback to loading from file (development)
         const res = await fetch("/amplify_outputs.json", { cache: "no-store" });
         if (!res.ok) {
           if (process.env.NODE_ENV === "development") {
