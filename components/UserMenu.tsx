@@ -3,11 +3,16 @@
 import { useState, useEffect } from "react";
 import { getCurrentUser, signOut } from "aws-amplify/auth";
 import { useRouter } from "next/navigation";
-import { User, LogOut, Settings, ChevronDown } from "lucide-react";
+import { User as UserIcon, LogOut, Settings, ChevronDown } from "lucide-react";
 import Button from "./ui/Button";
 
+interface User {
+  username?: string;
+  userId: string;
+}
+
 export default function UserMenu() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -19,7 +24,7 @@ export default function UserMenu() {
   async function checkUser() {
     try {
       const currentUser = await getCurrentUser();
-      setUser(currentUser);
+      setUser(currentUser as User);
     } catch {
       setUser(null);
     } finally {
@@ -92,7 +97,7 @@ export default function UserMenu() {
               }}
               className="w-full px-4 py-2 text-sm text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
             >
-              <User className="w-4 h-4" />
+              <UserIcon className="w-4 h-4" />
               Profile
             </button>
             

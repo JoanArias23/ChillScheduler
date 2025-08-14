@@ -24,12 +24,13 @@ export default function AuthPage() {
       await signIn({ username: email, password });
       push({ message: "Welcome back!", tone: "success" });
       router.push("/");
-    } catch (error: any) {
-      if (error.name === "UserNotConfirmedException") {
+    } catch (error) {
+      const err = error as { name?: string; message?: string };
+      if (err.name === "UserNotConfirmedException") {
         setMode("confirm");
         push({ message: "Please confirm your email first", tone: "warning" });
       } else {
-        push({ message: error.message || "Sign in failed", tone: "danger" });
+        push({ message: err.message || "Sign in failed", tone: "danger" });
       }
     } finally {
       setLoading(false);
@@ -52,8 +53,9 @@ export default function AuthPage() {
       });
       setMode("confirm");
       push({ message: "Account created! Check your email for confirmation code", tone: "success" });
-    } catch (error: any) {
-      push({ message: error.message || "Sign up failed", tone: "danger" });
+    } catch (error) {
+      const err = error as { message?: string };
+      push({ message: err.message || "Sign up failed", tone: "danger" });
     } finally {
       setLoading(false);
     }
@@ -70,8 +72,9 @@ export default function AuthPage() {
       push({ message: "Email confirmed! You can now sign in", tone: "success" });
       setMode("signin");
       setConfirmCode("");
-    } catch (error: any) {
-      push({ message: error.message || "Confirmation failed", tone: "danger" });
+    } catch (error) {
+      const err = error as { message?: string };
+      push({ message: err.message || "Confirmation failed", tone: "danger" });
     } finally {
       setLoading(false);
     }
@@ -81,8 +84,9 @@ export default function AuthPage() {
     try {
       await resendSignUpCode({ username: email });
       push({ message: "New confirmation code sent to your email", tone: "success" });
-    } catch (error: any) {
-      push({ message: error.message || "Failed to resend code", tone: "danger" });
+    } catch (error) {
+      const err = error as { message?: string };
+      push({ message: err.message || "Failed to resend code", tone: "danger" });
     }
   }
 
