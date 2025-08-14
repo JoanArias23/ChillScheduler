@@ -116,8 +116,9 @@ export const handler: Handler<ExecuteJobEvent, ExecuteJobResponse> = async (even
         'Access-Control-Allow-Origin': '*'
       }
     };
-  } catch (error: any) {
-    console.error(`Failed to execute job ${jobId}:`, error);
+  } catch (error) {
+    const err = error as { message?: string; name?: string };
+    console.error(`Failed to execute job ${jobId}:`, err);
     
     // Try to record the failed execution
     try {
@@ -139,8 +140,8 @@ export const handler: Handler<ExecuteJobEvent, ExecuteJobResponse> = async (even
           completedAt: failedAt,
           status: 'failed',
           trigger,
-          errorMessage: error.message || 'Execution failed',
-          errorType: error.name || 'UnknownError',
+          errorMessage: err.message || 'Execution failed',
+          errorType: err.name || 'UnknownError',
           durationMs,
           createdAt: failedAt,
           updatedAt: failedAt
@@ -155,7 +156,7 @@ export const handler: Handler<ExecuteJobEvent, ExecuteJobResponse> = async (even
         ExpressionAttributeValues: {
           ':status': 'failed',
           ':time': failedAt,
-          ':error': error.message || 'Execution failed',
+          ':error': err.message || 'Execution failed',
           ':zero': 0,
           ':one': 1,
           ':now': failedAt
@@ -174,7 +175,7 @@ export const handler: Handler<ExecuteJobEvent, ExecuteJobResponse> = async (even
         success: false,
         executionId: null,
         response: null,
-        message: error.message || 'Execution failed'
+        message: err.message || 'Execution failed'
       }),
       headers: {
         'Content-Type': 'application/json',
