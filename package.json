@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "amplify:sync": "cp amplify_outputs.json public/amplify_outputs.json 2>/dev/null || true"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.864.0",
