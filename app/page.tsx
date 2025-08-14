@@ -433,17 +433,18 @@ function JobCard({
     setIsRunning(true);
     setLastError(null);
     try {
-      const res = await fetch("http://claude.chinchilla-ai.com:3000/query", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: job.prompt, system: job.systemPrompt }),
+      // Call the Lambda function through GraphQL mutation
+      const result = await client.mutations.executeJob({
+        jobId: job.id as string,
+        trigger: 'manual'
       });
-      if (!res.ok) {
-        const errorText = await res.text().catch(() => "");
-        throw new Error(`Request failed (${res.status}): ${errorText || "Unknown error"}`);
+      
+      if (result.data) {
+        push({ message: "Job executed successfully! Check history for results.", tone: "success" });
+        setTimeout(() => onChanged(), 1500); // Refresh after a short delay
+      } else {
+        throw new Error("Execution failed");
       }
-      push({ message: "Job executed successfully! Check history for results.", tone: "success" });
-      setTimeout(() => onChanged(), 1500); // Refresh after a short delay
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : "Failed to run job";
       console.error(e);
@@ -603,15 +604,36 @@ function CreateJobForm({
 
   async function testRun() {
     try {
-      const res = await fetch("http://claude.chinchilla-ai.com:3000/query", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, system: systemPrompt }),
+      // Create a temporary job for testing
+      const tempJobId = `test_${Date.now()}`;
+      
+      // Store the test job temporarily
+      const testJob = await client.models.Job.create({
+        id: tempJobId,
+        name: `Test: ${name || 'Unnamed'}`,
+        prompt,
+        systemPrompt: systemPrompt || undefined,
+        schedule: '0 0 * * *', // Daily (not actually scheduled)
+        enabled: false, // Don't actually schedule it
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json().catch(() => ({}));
-      setMessage(`Test run successful${data?.id ? ` (id ${data.id})` : ""}.`);
-      push({ message: "Test run completed", tone: "success" });
+      
+      if (testJob.data) {
+        // Execute the test job
+        const result = await client.mutations.executeJob({
+          jobId: tempJobId,
+          trigger: 'manual'
+        });
+        
+        // Clean up the test job
+        await client.models.Job.delete({ id: tempJobId });
+        
+        if (result.data) {
+          setMessage(`Test run successful! Check the response in execution history.`);
+          push({ message: "Test run completed", tone: "success" });
+        } else {
+          throw new Error("Test execution failed");
+        }
+      }
     } catch (e) {
       setMessage(`Test run failed: ${e instanceof Error ? e.message : String(e)}`);
       push({ message: "Test run failed", tone: "danger" });

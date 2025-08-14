@@ -1,5 +1,6 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 import { scheduleManager } from '../functions/scheduleManager/resource';
+import { executeJob } from '../functions/executeJob/resource';
 
 const schema = a.schema({
   Job: a
@@ -54,6 +55,16 @@ const schema = a.schema({
     .returns(a.json())
     .authorization((allow) => [allow.guest()])
     .handler(a.handler.function(scheduleManager)),
+    
+  executeJob: a
+    .mutation()
+    .arguments({
+      jobId: a.string().required(),
+      trigger: a.string().default('manual'),
+    })
+    .returns(a.json())
+    .authorization((allow) => [allow.guest()])
+    .handler(a.handler.function(executeJob)),
 });
 
 export type Schema = ClientSchema<typeof schema>;
