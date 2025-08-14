@@ -96,7 +96,9 @@ export default function AuthPage() {
         {/* Left side - Branding */}
         <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-600 to-emerald-700 p-12 items-center justify-center">
           <div className="max-w-md text-white">
-            <h1 className="text-4xl font-bold mb-6">ChillScheduler</h1>
+            <a href="/landing" className="inline-block mb-6">
+              <h1 className="text-4xl font-bold">ChillScheduler</h1>
+            </a>
             <p className="text-xl mb-8 text-emerald-100">
               Automate your AI tasks with powerful scheduling
             </p>
@@ -127,7 +129,10 @@ export default function AuthPage() {
         </div>
 
         {/* Right side - Auth forms */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
+          <a href="/landing" className="absolute top-8 left-8 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white flex items-center gap-2">
+            ← Back to Home
+          </a>
           <div className="w-full max-w-md">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-gray-900 dark:text-white">

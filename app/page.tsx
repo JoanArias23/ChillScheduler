@@ -4,6 +4,8 @@ import Header from "@/components/Header";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "@/amplify/data/resource";
 import { useEffect, useMemo, useState, Suspense } from "react";
+import { getCurrentUser } from "aws-amplify/auth";
+import { useRouter } from "next/navigation";
 import EmptyState from "@/components/EmptyState";
 import {
   Clock,
@@ -27,7 +29,6 @@ import { useToast } from "@/components/ui/Toast";
 import { usePrefs } from "@/components/usePrefs";
 import { useSearchParams } from "next/navigation";
 import { TEMPLATES } from "@/components/templates";
-import { useRouter } from "next/navigation";
 import { useCountdown } from "@/hooks/useCountdown";
 
 type Job = Schema["Job"]["type"];
@@ -62,10 +63,26 @@ function HomePage() {
   const [sortBy, setSortBy] = useState<string>("next");
   const [selectedJobForEdit, setSelectedJobForEdit] = useState<Job | null>(null);
   const [detailJob, setDetailJob] = useState<Job | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const configured = typeof window !== "undefined" && !!window.__AMPLIFY_CONFIGURED__;
   const { prefs } = usePrefs();
   const { push } = useToast();
   const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Check authentication on mount
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        await getCurrentUser();
+        setAuthChecked(true);
+      } catch {
+        // User is not authenticated, redirect to landing page
+        router.push("/landing");
+      }
+    }
+    checkAuth();
+  }, [router]);
 
   async function refreshJobs() {
     setLoadingJobs(true);
@@ -172,6 +189,15 @@ function HomePage() {
     }
     return arr;
   }, [jobs, search, statusFilter, sortBy]);
+
+  // Show loading while checking authentication
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
