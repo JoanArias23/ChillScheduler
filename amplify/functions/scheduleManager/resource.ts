@@ -2,6 +2,8 @@ import { defineFunction } from '@aws-amplify/backend';
 
 export const scheduleManager = defineFunction({
   name: 'scheduleManager',
-  runtime: 20,
+  entry: './handler.ts',
   timeoutSeconds: 60,
+  runtime: 20,
+  resourceGroupName: 'data',
 });

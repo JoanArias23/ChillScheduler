@@ -308,7 +308,22 @@ function JobCard({
   async function toggleEnabled() {
     if (typeof window === "undefined") return;
     if (window.__AMPLIFY_CONFIGURED__) {
-      await client.models.Job.update({ id: job.id as string, enabled: !job.enabled });
+      const newEnabled = !job.enabled;
+      await client.models.Job.update({ id: job.id as string, enabled: newEnabled });
+      
+      // Update the schedule to enable/disable it
+      try {
+        await client.mutations.manageSchedule({
+          action: 'update',
+          jobId: job.id as string,
+          schedule: job.schedule,
+          enabled: newEnabled,
+        });
+        console.log('Schedule toggled successfully');
+      } catch (scheduleError) {
+        console.error('Failed to toggle schedule:', scheduleError);
+      }
+      
       onChanged();
     }
   }
@@ -317,6 +332,18 @@ function JobCard({
     if (!confirm("Delete this job? This cannot be undone.")) return;
     if (typeof window === "undefined") return;
     if (window.__AMPLIFY_CONFIGURED__) {
+      // Delete the schedule first
+      try {
+        await client.mutations.manageSchedule({
+          action: 'delete',
+          jobId: job.id as string,
+        });
+        console.log('Schedule deleted successfully');
+      } catch (scheduleError) {
+        console.error('Failed to delete schedule:', scheduleError);
+      }
+      
+      // Then delete the job
       await client.models.Job.delete({ id: job.id as string });
       onChanged();
     }
@@ -436,15 +463,48 @@ function CreateJobForm({
         onSaved();
         return;
       }
-      await client.models.Job.create({
-        name,
-        prompt,
-        systemPrompt: systemPrompt || undefined,
-        schedule,
-        enabled,
-      });
-      setMessage("Job saved successfully");
-      push({ message: "Job saved", tone: "success" });
+      
+      let jobResult;
+      if (initial?.id) {
+        // Update existing job
+        jobResult = await client.models.Job.update({
+          id: initial.id as string,
+          name,
+          prompt,
+          systemPrompt: systemPrompt || undefined,
+          schedule,
+          enabled,
+        });
+      } else {
+        // Create new job
+        jobResult = await client.models.Job.create({
+          name,
+          prompt,
+          systemPrompt: systemPrompt || undefined,
+          schedule,
+          enabled,
+        });
+      }
+      
+      // Set up the schedule with EventBridge
+      if (jobResult.data?.id) {
+        try {
+          await client.mutations.manageSchedule({
+            action: initial?.id ? 'update' : 'create',
+            jobId: jobResult.data.id,
+            schedule,
+            enabled,
+          });
+          console.log('Schedule configured successfully');
+        } catch (scheduleError) {
+          console.error('Failed to configure schedule:', scheduleError);
+          // Don't fail the whole operation, just log the error
+          setMessage("Job saved but schedule setup failed. Check logs.");
+        }
+      }
+      
+      setMessage(initial?.id ? "Job updated successfully" : "Job saved successfully");
+      push({ message: initial?.id ? "Job updated" : "Job saved", tone: "success" });
       onSaved();
     } catch (e: any) {
       setMessage(`Save failed: ${e?.message ?? e}`);
