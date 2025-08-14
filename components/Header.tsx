@@ -1,8 +1,9 @@
 "use client";
 
-import { CalendarDays, Cog, Wifi, WifiOff } from "lucide-react";
+import { CalendarDays, Wifi, WifiOff } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
+import AuthButton from "@/components/AuthButton";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -82,6 +83,7 @@ export default function Header() {
             </span>
           </div>
 
+          <AuthButton />
           <ThemeToggle />
         </div>
       </div>
