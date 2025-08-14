@@ -67,6 +67,7 @@ backend.scheduleManager.addEnvironment('JOBS_TABLE', backend.data.resources.tabl
 // Add environment variables for executeJob
 backend.executeJob.addEnvironment('JOBS_TABLE', backend.data.resources.tables['Job'].tableName);
 backend.executeJob.addEnvironment('EXECUTIONS_TABLE', backend.data.resources.tables['JobExecution'].tableName);
+backend.executeJob.addEnvironment('CLAUDE_API_URL', 'http://claude.chinchilla-ai.com:3000/query');
 
 // Allow EventBridge to invoke executeJob Lambda
 backend.executeJob.resources.lambda.grantInvoke(new ServicePrincipal('events.amazonaws.com'));
