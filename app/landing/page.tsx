@@ -9,7 +9,6 @@ import {
   Clock, 
   CheckCircle, 
   ArrowRight,
-  Play,
   BarChart3,
   Globe,
   Shield,
@@ -282,34 +281,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Demo Section */}
-      <section id="demo" className="py-20 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              See It In Action
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400">
-              Watch how easy it is to create your first scheduled AI task
-            </p>
-          </div>
-
-          <div className="bg-gray-900 rounded-2xl shadow-2xl overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 bg-gray-800">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              <span className="ml-4 text-xs text-gray-400">ChillScheduler Dashboard</span>
-            </div>
-            <div className="p-8 flex items-center justify-center h-96 bg-gradient-to-br from-gray-800 to-gray-900">
-              <div className="text-center">
-                <Play className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-                <p className="text-gray-400">Demo video coming soon</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* CTA Section */}
       <section className="py-20 px-6 bg-gradient-to-r from-emerald-600 to-emerald-700">
