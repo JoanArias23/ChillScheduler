@@ -67,11 +67,11 @@ export default function LandingPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button size="lg" onClick={handleGetStarted} className="group">
+            <Button size="md" onClick={handleGetStarted} className="group px-6 py-3">
               Start Free Trial
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button variant="outline" size="lg" onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}>
+            <Button variant="outline" size="md" onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })} className="px-6 py-3">
               <Play className="w-4 h-4 mr-2" />
               Watch Demo
             </Button>
@@ -149,7 +149,7 @@ export default function LandingPage() {
                 <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Prompt:</p>
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    "Analyze today's crypto market trends and summarize the top 3 opportunities"
+                    &quot;Analyze today&apos;s crypto market trends and summarize the top 3 opportunities&quot;
                   </p>
                 </div>
                 <div className="flex items-center justify-between">
@@ -247,7 +247,7 @@ export default function LandingPage() {
                 step: "1",
                 title: "Write Your Prompt",
                 description: "Describe what you want the AI to do in plain English",
-                example: '"Summarize tech news and email me the highlights"'
+                example: '&quot;Summarize tech news and email me the highlights&quot;'
               },
               {
                 step: "2",
@@ -334,9 +334,9 @@ export default function LandingPage() {
               className="px-6 py-3 rounded-lg bg-white/10 backdrop-blur border border-white/20 text-white placeholder-emerald-200 focus:outline-none focus:ring-2 focus:ring-white/50 w-full sm:w-80"
             />
             <Button 
-              size="lg" 
+              size="md" 
               onClick={handleGetStarted}
-              className="bg-white text-emerald-600 hover:bg-gray-100 w-full sm:w-auto"
+              className="bg-white text-emerald-600 hover:bg-gray-100 w-full sm:w-auto px-6 py-3"
             >
               Get Started Free
               <ArrowRight className="w-4 h-4 ml-2" />
