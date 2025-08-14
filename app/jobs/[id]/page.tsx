@@ -33,7 +33,7 @@ export default function JobPage() {
       try {
         if (configured) {
           const j = await client.models.Job.get({ id });
-          setJob(j.data as any);
+          setJob(j.data);
           const e = await client.models.JobExecution.list({ filter: { jobId: { eq: id } } });
           setExecs(e.data ?? []);
         } else {
@@ -49,7 +49,7 @@ export default function JobPage() {
             lastRunStatus: "success",
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
-          } as any);
+          } as Job);
           setExecs([
             {
               id: id + "-exec-1",
@@ -61,7 +61,7 @@ export default function JobPage() {
               response: { summary: "3 stories summarized" },
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
-            } as any,
+            } as JobExecution,
           ]);
         }
       } finally {
@@ -77,7 +77,7 @@ export default function JobPage() {
       const res = await fetch("http://claude.chinchilla-ai.com:3000/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: job.prompt, system: (job as any).systemPrompt }),
+        body: JSON.stringify({ prompt: job.prompt, system: job.systemPrompt }),
       });
       if (!res.ok) throw new Error("Run failed");
       push({ message: "Run started", tone: "info" });
@@ -90,9 +90,9 @@ export default function JobPage() {
     if (!job) return;
     if (configured) {
       await client.models.Job.update({ id: job.id as string, enabled: !job.enabled });
-      setJob({ ...(job as any), enabled: !job.enabled });
+      setJob({ ...job, enabled: !job.enabled });
     } else {
-      setJob({ ...(job as any), enabled: !job.enabled });
+      setJob({ ...job, enabled: !job.enabled });
     }
     push({ message: job.enabled ? "Job paused" : "Job resumed", tone: "success" });
   }

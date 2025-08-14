@@ -28,7 +28,7 @@ export default function Modal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="relative z-10 w-full max-w-2xl rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-xl">
-        {(title || onClose) && (
+        {title && (
           <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
             <div className="font-semibold text-[var(--foreground)]">{title}</div>
             <button

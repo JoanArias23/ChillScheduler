@@ -1,11 +1,9 @@
 import type { Handler } from 'aws-lambda';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, UpdateCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
-import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
-const lambdaClient = new LambdaClient({});
 
 interface ExecuteJobEvent {
   jobId: string;
@@ -138,7 +136,7 @@ export const handler: Handler<ExecuteJobEvent, ExecuteJobResponse> = async (even
       }));
 
       // Update job status to failed and increment failure count
-      const jobUpdateResult = await docClient.send(new UpdateCommand({
+      await docClient.send(new UpdateCommand({
         TableName: jobsTable,
         Key: { id: jobId },
         UpdateExpression: 'SET lastRunStatus = :status, lastRunAt = :time, lastRunError = :error, failureCount = if_not_exists(failureCount, :zero) + :one, updatedAt = :now',
@@ -151,51 +149,9 @@ export const handler: Handler<ExecuteJobEvent, ExecuteJobResponse> = async (even
           ':now': failedAt
         }
       }));
-
-      // Try to trigger retry if auto-retry is enabled
-      try {
-        const jobResult = await docClient.send(new GetCommand({
-          TableName: jobsTable,
-          Key: { id: jobId }
-        }));
-
-        const job = jobResult.Item;
-        if (job && job.autoRetry && (job.retryCount || 0) < (job.maxRetries || 3)) {
-          console.log(`Triggering retry for job ${jobId} (attempt ${(job.retryCount || 0) + 1}/${job.maxRetries || 3})`);
-          
-          // Increment retry count
-          await docClient.send(new UpdateCommand({
-            TableName: jobsTable,
-            Key: { id: jobId },
-            UpdateExpression: 'SET retryCount = if_not_exists(retryCount, :zero) + :one',
-            ExpressionAttributeValues: {
-              ':zero': 0,
-              ':one': 1
-            }
-          }));
-
-          // Invoke scheduleManager to create retry schedule
-          const scheduleManagerArn = process.env.SCHEDULE_MANAGER_ARN;
-          if (scheduleManagerArn) {
-            await lambdaClient.send(new InvokeCommand({
-              FunctionName: scheduleManagerArn,
-              InvocationType: 'Event', // Async invocation
-              Payload: JSON.stringify({
-                action: 'retry',
-                jobId,
-                retryDelayMinutes: Math.min(30 * Math.pow(2, job.retryCount || 0), 240) // Exponential backoff: 30min, 1h, 2h, 4h max
-              })
-            }));
-            console.log(`Retry scheduled for job ${jobId}`);
-          } else {
-            console.warn('SCHEDULE_MANAGER_ARN not found, cannot schedule retry');
-          }
-        } else {
-          console.log(`No retry scheduled for job ${jobId}: autoRetry=${job?.autoRetry}, retryCount=${job?.retryCount}, maxRetries=${job?.maxRetries}`);
-        }
-      } catch (retryError) {
-        console.error('Failed to trigger retry:', retryError);
-      }
+      
+      // Note: Retry logic would be handled by a separate process to avoid circular dependencies
+      console.log(`Job ${jobId} failed. Manual retry may be needed.`);
     } catch (recordError) {
       console.error('Failed to record execution failure:', recordError);
     }

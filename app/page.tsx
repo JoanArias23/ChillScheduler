@@ -3,7 +3,7 @@
 import Header from "@/components/Header";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "@/amplify/data/resource";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import {
   Clock,
   Edit3,
@@ -18,7 +18,6 @@ import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import Tabs from "@/components/Tabs";
 import ScheduleBuilder from "@/components/ScheduleBuilder";
-import Modal from "@/components/ui/Modal";
 import JobDetailModal from "@/components/JobDetailModal";
 import Skeleton from "@/components/ui/Skeleton";
 import { useToast } from "@/components/ui/Toast";
@@ -46,14 +45,11 @@ function timeAgo(date?: string | Date | null) {
   return `${day}d ago`;
 }
 
-function classNames(...xs: (string | false | null | undefined)[]) {
-  return xs.filter(Boolean).join(" ");
-}
 
 const TABS = ["Scheduled Jobs", "Create Job", "Execution History"] as const;
 type Tab = (typeof TABS)[number];
 
-export default function Home() {
+function HomePage() {
   const [activeTab, setActiveTab] = useState<Tab>("Scheduled Jobs");
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loadingJobs, setLoadingJobs] = useState(false);
@@ -113,7 +109,7 @@ export default function Home() {
     if (tplId) {
       const tpl = TEMPLATES.find((t) => t.id === tplId);
       if (tpl) {
-        setSelectedJobForEdit({ name: tpl.name, prompt: tpl.prompt, schedule: tpl.schedule } as any);
+        setSelectedJobForEdit({ name: tpl.name, prompt: tpl.prompt, schedule: tpl.schedule } as Job);
         setActiveTab("Create Job");
       }
     } else if (editId) {
@@ -122,9 +118,9 @@ export default function Home() {
         try {
           if (configured) {
             const j = await client.models.Job.get({ id: editId });
-            if (j.data) setSelectedJobForEdit(j.data as any);
+            if (j.data) setSelectedJobForEdit(j.data);
           } else {
-            setSelectedJobForEdit({ id: editId, name: "Mock Job", prompt: "Edit me", schedule: "0 */4 * * *" } as any);
+            setSelectedJobForEdit({ id: editId, name: "Mock Job", prompt: "Edit me", schedule: "0 */4 * * *" } as Job);
           }
           setActiveTab("Create Job");
         } catch {}
@@ -269,6 +265,14 @@ export default function Home() {
       {/* Detail modal retained for future uses; primary flow navigates to job page */}
       <JobDetailModal open={!!detailJob} onClose={() => setDetailJob(null)} job={detailJob} />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HomePage />
+    </Suspense>
   );
 }
 
@@ -448,8 +452,8 @@ function CreateJobForm({
       const data = await res.json().catch(() => ({}));
       setMessage(`Test run successful${data?.id ? ` (id ${data.id})` : ""}.`);
       push({ message: "Test run completed", tone: "success" });
-    } catch (e: any) {
-      setMessage(`Test run failed: ${e?.message ?? e}`);
+    } catch (e) {
+      setMessage(`Test run failed: ${e instanceof Error ? e.message : String(e)}`);
       push({ message: "Test run failed", tone: "danger" });
     }
   }
@@ -506,8 +510,8 @@ function CreateJobForm({
       setMessage(initial?.id ? "Job updated successfully" : "Job saved successfully");
       push({ message: initial?.id ? "Job updated" : "Job saved", tone: "success" });
       onSaved();
-    } catch (e: any) {
-      setMessage(`Save failed: ${e?.message ?? e}`);
+    } catch (e) {
+      setMessage(`Save failed: ${e instanceof Error ? e.message : String(e)}`);
       push({ message: "Save failed", tone: "danger" });
     } finally {
       setSaving(false);
@@ -684,7 +688,7 @@ function ExecutionHistory() {
                   </div>
                   <div className="text-[var(--muted-foreground)]">Tools</div>
                   <div className="font-mono bg-[var(--muted)] border border-[var(--border)] rounded p-2 overflow-auto">
-                    ["slack", "jira"]
+                    [&quot;slack&quot;, &quot;jira&quot;]
                   </div>
                 </div>
               )}

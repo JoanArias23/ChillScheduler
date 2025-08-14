@@ -65,12 +65,8 @@ backend.scheduleManager.addEnvironment('EXECUTE_JOB_ARN', backend.executeJob.res
 backend.scheduleManager.addEnvironment('JOBS_TABLE', backend.data.resources.tables['Job'].tableName);
 
 // Add environment variables for executeJob
-backend.executeJob.addEnvironment('SCHEDULE_MANAGER_ARN', backend.scheduleManager.resources.lambda.functionArn);
 backend.executeJob.addEnvironment('JOBS_TABLE', backend.data.resources.tables['Job'].tableName);
 backend.executeJob.addEnvironment('EXECUTIONS_TABLE', backend.data.resources.tables['JobExecution'].tableName);
 
 // Allow EventBridge to invoke executeJob Lambda
 backend.executeJob.resources.lambda.grantInvoke(new ServicePrincipal('events.amazonaws.com'));
-
-// Allow executeJob Lambda to invoke scheduleManager Lambda for retries
-backend.scheduleManager.resources.lambda.grantInvoke(backend.executeJob.resources.lambda);
