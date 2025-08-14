@@ -29,7 +29,7 @@ export default function Header() {
     <header className="w-full sticky top-0 z-10 bg-gradient-to-b from-[var(--background)] to-[var(--surface)] border-b border-[var(--border)]/80 backdrop-blur supports-[backdrop-filter]:bg-[var(--background)]/70">
       <div className="max-w-[1280px] mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center">
+          <div className="h-9 w-9 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center">
             <CalendarDays size={20} />
           </div>
           <div className="flex flex-col">
@@ -50,7 +50,7 @@ export default function Header() {
                   href={l.href}
                   className={`px-2.5 py-1.5 text-sm rounded-md border ${
                     active
-                      ? "bg-blue-600 text-white border-blue-600"
+                      ? "bg-emerald-600 text-white border-emerald-600"
                       : "bg-[var(--surface)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--muted)]"
                   }`}
                 >
