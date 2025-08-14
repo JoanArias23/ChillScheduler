@@ -66,14 +66,10 @@ export default function LandingPage() {
             autopilot - from daily reports to data analysis, all without writing a single line of code.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          <div className="flex justify-center mb-12">
             <Button size="md" onClick={handleGetStarted} className="group px-6 py-3">
-              Start Free Trial
+              Get Started
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <Button variant="outline" size="md" onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })} className="px-6 py-3">
-              <Play className="w-4 h-4 mr-2" />
-              Watch Demo
             </Button>
           </div>
 
