@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "@/amplify/data/resource";
 import { useEffect, useMemo, useState, Suspense } from "react";
+import EmptyState from "@/components/EmptyState";
 import {
   Clock,
   Edit3,
@@ -12,6 +13,8 @@ import {
   Play,
   Search,
   Trash2,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
@@ -222,9 +225,30 @@ function HomePage() {
             </div>
 
             {loadingJobs ? (
-              <div className="text-gray-500 text-sm">Loading jobs…</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i} className="p-4">
+                    <div className="flex flex-col gap-3">
+                      <div>
+                        <Skeleton className="h-5 w-3/4 mb-2" />
+                        <Skeleton className="h-3 w-full" />
+                      </div>
+                      <div className="flex gap-2">
+                        <Skeleton className="h-3 w-20" />
+                        <Skeleton className="h-3 w-20" />
+                      </div>
+                      <div className="flex gap-2">
+                        <Skeleton className="h-8 w-20" />
+                        <Skeleton className="h-8 w-20" />
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : jobs.length === 0 ? (
+              <EmptyState onCreateJob={() => { setSelectedJobForEdit(null); setActiveTab("Create Job"); }} />
             ) : filteredJobs.length === 0 ? (
-              <div className="text-gray-500 text-sm">No jobs found.</div>
+              <div className="text-gray-500 text-sm">No jobs match your search.</div>
             ) : (
               <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 ${prefs.density === 'compact' ? 'sm:grid-cols-3 lg:grid-cols-4' : ''}`}>
                 {filteredJobs.map((job) => (
@@ -300,6 +324,8 @@ function JobCard({
 }) {
   const router = useRouter();
   const { push } = useToast();
+  const [isRunning, setIsRunning] = useState(false);
+  const [lastError, setLastError] = useState<string | null>(null);
   function prefsClass() {
     try {
       const raw = localStorage.getItem("prefs");
@@ -355,17 +381,27 @@ function JobCard({
   }
 
   async function runNow() {
+    setIsRunning(true);
+    setLastError(null);
     try {
       const res = await fetch("http://claude.chinchilla-ai.com:3000/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: job.prompt, system: job.systemPrompt }),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      push({ message: "Run started. Check history for results.", tone: "info" });
+      if (!res.ok) {
+        const errorText = await res.text().catch(() => "");
+        throw new Error(`Request failed (${res.status}): ${errorText || "Unknown error"}`);
+      }
+      push({ message: "Job executed successfully! Check history for results.", tone: "success" });
+      setTimeout(() => onChanged(), 1500); // Refresh after a short delay
     } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : "Failed to run job";
       console.error(e);
-      push({ message: "Failed to run job.", tone: "danger" });
+      setLastError(errorMessage);
+      push({ message: errorMessage, tone: "danger" });
+    } finally {
+      setIsRunning(false);
     }
   }
 
@@ -398,9 +434,30 @@ function JobCard({
         </div>
         <div className="col-span-2">Schedule: {job.schedule}</div>
       </div>
+      {lastError && (
+        <div className="flex items-start gap-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+          <AlertCircle size={14} className="text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-xs font-medium text-red-800 dark:text-red-300">Execution Failed</p>
+            <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">{lastError}</p>
+          </div>
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-2 pt-1">
-        <Button size="sm" onClick={(e) => { e.stopPropagation(); runNow(); }}>
-          <Play size={14} /> Run Now
+        <Button 
+          size="sm" 
+          onClick={(e) => { e.stopPropagation(); runNow(); }}
+          disabled={isRunning}
+        >
+          {isRunning ? (
+            <>
+              <Loader2 size={14} className="animate-spin" /> Running...
+            </>
+          ) : (
+            <>
+              <Play size={14} /> Run Now
+            </>
+          )}
         </Button>
         <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); toggleEnabled(); }}>
           <Pause size={14} /> {job.enabled ? "Pause" : "Resume"}
