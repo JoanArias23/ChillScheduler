@@ -28,6 +28,7 @@ import { usePrefs } from "@/components/usePrefs";
 import { useSearchParams } from "next/navigation";
 import { TEMPLATES } from "@/components/templates";
 import { useRouter } from "next/navigation";
+import { useCountdown } from "@/hooks/useCountdown";
 
 type Job = Schema["Job"]["type"];
 type JobExecution = Schema["JobExecution"]["type"];
@@ -326,6 +327,28 @@ function JobCard({
   const { push } = useToast();
   const [isRunning, setIsRunning] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
+  const [lastExecution, setLastExecution] = useState<JobExecution | null>(null);
+  const [showFullResult, setShowFullResult] = useState(false);
+  const countdown = useCountdown(job.nextRunAt);
+  
+  // Fetch last execution result
+  useEffect(() => {
+    async function fetchLastExecution() {
+      if (!job.id || !window.__AMPLIFY_CONFIGURED__) return;
+      try {
+        const res = await client.models.JobExecution.list({
+          filter: { jobId: { eq: job.id as string } },
+          limit: 1,
+        });
+        if (res.data && res.data.length > 0) {
+          setLastExecution(res.data[0]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch last execution:", error);
+      }
+    }
+    fetchLastExecution();
+  }, [job.id, job.lastRunAt]);
   function prefsClass() {
     try {
       const raw = localStorage.getItem("prefs");
@@ -425,14 +448,68 @@ function JobCard({
         </div>
         <StatusBadge status={job.lastRunStatus as string} />
       </div>
-      <div className="grid grid-cols-2 gap-2 text-xs text-[var(--muted-foreground)]">
-        <div className="flex items-center gap-1">
-          <Clock size={14} className="opacity-60" /> Next: {timeAgo(job.nextRunAt)}
+      {/* Last Result Preview */}
+      {lastExecution && lastExecution.response && (
+        <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-md p-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Last Result:</p>
+              <p className="text-xs text-gray-800 dark:text-gray-200 break-words">
+                {(() => {
+                  const responseText = typeof lastExecution.response === 'string' 
+                    ? lastExecution.response 
+                    : JSON.stringify(lastExecution.response);
+                  return showFullResult 
+                    ? responseText
+                    : responseText.length > 150 
+                      ? responseText.substring(0, 150) + "..."
+                      : responseText;
+                })()}
+              </p>
+              {typeof lastExecution.response === 'string' && lastExecution.response.length > 150 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowFullResult(!showFullResult); }}
+                  className="text-xs text-emerald-600 hover:text-emerald-700 mt-1"
+                >
+                  {showFullResult ? "Show less" : "Show more"}
+                </button>
+              )}
+            </div>
+            {lastExecution.durationMs && (
+              <span className="text-xs text-gray-500 flex-shrink-0">
+                {(lastExecution.durationMs / 1000).toFixed(1)}s
+              </span>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-1">
-          <Clock size={14} className="opacity-60" /> Last: {timeAgo(job.lastRunAt)}
+      )}
+      
+      {/* Countdown Timer */}
+      <div className="space-y-2">
+        <div className={`flex items-center gap-2 ${countdown.isOverdue ? 'text-red-600 dark:text-red-400' : ''}`}>
+          <Clock size={14} className={countdown.isOverdue ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400'} />
+          <span className="text-xs font-medium">
+            {countdown.isOverdue ? (
+              <span className="text-red-600 dark:text-red-400">{countdown.formatted}</span>
+            ) : (
+              <>Next run in: <span className="text-emerald-600 dark:text-emerald-400">{countdown.formatted}</span></>
+            )}
+          </span>
         </div>
-        <div className="col-span-2">Schedule: {job.schedule}</div>
+        {!countdown.isOverdue && countdown.total > 0 && (
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+            <div 
+              className="bg-emerald-600 dark:bg-emerald-400 h-1.5 rounded-full transition-all duration-1000"
+              style={{ 
+                width: `${Math.max(0, Math.min(100, (1 - countdown.total / (4 * 60 * 60 * 1000)) * 100))}%` 
+              }}
+            />
+          </div>
+        )}
+        <div className="flex items-center gap-4 text-xs text-[var(--muted-foreground)]">
+          <span>Schedule: {job.schedule}</span>
+          <span>Last: {timeAgo(job.lastRunAt)}</span>
+        </div>
       </div>
       {lastError && (
         <div className="flex items-start gap-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
